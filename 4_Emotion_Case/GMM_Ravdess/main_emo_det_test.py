@@ -8,7 +8,7 @@ import os
 
 def extract_MFCCs(file_name,x,Fs,window_size,overlap,deltas=False):
 
-	MFCC13_F = AFE.stFeatureExtraction(file_name,x, Fs, window_size, overlap)
+	MFCC13_F,FRAME_DATA= AFE.stFeatureExtraction(file_name,x, Fs, window_size, overlap)
 
 	energy=None
 	clean_samples=None
@@ -47,7 +47,7 @@ def extract_MFCCs(file_name,x,Fs,window_size,overlap,deltas=False):
 	
 	Combined_MFCC_F = np.concatenate((MFCC13_F,delta_MFCC,double_delta_MFCC),axis=1)
 	
-	return Combined_MFCC_F
+	return [Combined_MFCC_F,FRAME_DATA]
 
 def extract_prosody(file_name,sp_folder,emo_folder,type_folder):
 	features=[]
@@ -92,7 +92,7 @@ if __name__=="__main__":
 			for testcasefile in glob.glob(speaker+'/*.wav'):
 
 				[Fs, x] = audioBasicIO.readAudioFile(testcasefile)
-				mfcc_features = extract_MFCCs("Features/frame_data/"+testcasefile,x,Fs,window*Fs,window_overlap*Fs,calc_deltas)
+				mfcc_features,frame_data = extract_MFCCs("Features/frame_data/"+testcasefile,x,Fs,window*Fs,window_overlap*Fs,calc_deltas)
 				actual_file_name = testcasefile.replace(speaker+"/",'')
 				prosody_features = extract_prosody(actual_file_name,speaker_name,emotion_name,"test_prosdata")
 				lpcc_features = extract_lpcc(actual_file_name,speaker_name,emotion_name,"test_lpccdata")
@@ -113,7 +113,9 @@ if __name__=="__main__":
 				max_emotion_name=""
 				all_emotion_test=np.concatenate([mfcc_features,prosody_features,lpcc_features],1)
 
-				np.savetxt('Features/ALL/testing_data/'+emotion_name+"#"+str(tct)+"_all_features", all_emotion_test, delimiter=",")
+				np.savetxt('Features/ALL/testing_data/'+emotion_name+str(tct)+"_hc", np.concatenate([mfcc_features,prosody_features,lpcc_features],1), delimiter=",")
+				np.savetxt('Features/ALL/testing_data/'+emotion_name+str(tct)+"_fr", frame_data, delimiter=",")
+				#print frame_data.shape, all_emotion_test.shape
 				
 				for modelfile in sorted(glob.glob('train_models/*.pkl')):
 					gmm = joblib.load(modelfile) 

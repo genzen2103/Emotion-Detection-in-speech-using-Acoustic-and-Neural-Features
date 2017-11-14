@@ -8,7 +8,7 @@ import os
 
 def extract_MFCCs(file_name,x,Fs,window_size,overlap,deltas=False):
 
-	MFCC13_F = AFE.stFeatureExtraction(file_name,x, Fs, window_size, overlap)
+	MFCC13_F,FRAME_DATA = AFE.stFeatureExtraction(file_name,x, Fs, window_size, overlap)
 
 	energy=None
 	clean_samples=None
@@ -47,7 +47,7 @@ def extract_MFCCs(file_name,x,Fs,window_size,overlap,deltas=False):
 	
 	Combined_MFCC_F = np.concatenate((MFCC13_F,delta_MFCC,double_delta_MFCC),axis=1)
 	
-	return Combined_MFCC_F
+	return [Combined_MFCC_F,FRAME_DATA]
 
 def extract_prosody(file_name,sp_folder,emo_folder,type_folder):
 	features=[]
@@ -81,6 +81,7 @@ if __name__=="__main__":
 			os.remove(f)
 
 	for emotion in all_emotions:
+		ct=0
 
 		emotion_name=emotion.replace('train_wavdata/','')
 		
@@ -101,7 +102,7 @@ if __name__=="__main__":
 					continue
 				if all_emotion_Fs==0:	all_emotion_Fs=Fs
 				if Fs==all_emotion_Fs:
-					mfcc_features = extract_MFCCs("Features/frame_data/"+sample_file,x,Fs,window*Fs,window_overlap*Fs,calc_deltas)
+					mfcc_features,frame_data = extract_MFCCs("Features/frame_data/"+sample_file,x,Fs,window*Fs,window_overlap*Fs,calc_deltas)
 
 					actual_file_name = sample_file.replace('train_wavdata/'+emotion_name+'/'+speaker_name+'/','')
 					#print actual_file_name
@@ -123,6 +124,10 @@ if __name__=="__main__":
 						if lpcc_features.shape[0]!=min_shape:
 							lpcc_features=lpcc_features[0:min_shape]
 
+					np.savetxt('Features/ALL/training_data/'+emotion_name+str(ct)+"_hc", np.concatenate([mfcc_features,prosody_features,lpcc_features],1), delimiter=",")
+					np.savetxt('Features/ALL/training_data/'+emotion_name+str(ct)+"_fr", np.concatenate([mfcc_features,prosody_features,lpcc_features],1), delimiter=",")
+					#print frame_data.shape
+					ct+=1
 					
 					all_emotion_data.append( np.concatenate([mfcc_features,prosody_features,lpcc_features],1) )
 				else:	
@@ -130,7 +135,7 @@ if __name__=="__main__":
 
 		all_emotion_data = np.concatenate(all_emotion_data,0)
 
-		np.savetxt('Features/ALL/training_data/'+emotion_name+"_all_features", all_emotion_data, delimiter=",")
+		
 		
 		print emotion_name,all_emotion_data.shape
 
