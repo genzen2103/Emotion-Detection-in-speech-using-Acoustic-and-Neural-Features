@@ -9,9 +9,9 @@ import keras
 
 
 if __name__=="__main__":
-	emotions={'anger_female':0,'anger_male':1,'happiness_female':2,'happiness_male':3,'neutral_female':4,'neutral_male':5,'sadness_female':6,'sadness_male':7}
+	emotions={'angry_female':0,'angry_male':1,'happy_female':2,'happy_male':3,'neutral_female':4,'neutral_male':5,'sad_female':6,'sad_male':7}
 	n_hidden1=30
-	n_hidden2=12
+	n_hidden2=15
 	n_input=54
 	b_size=50
 	n_epochs=50
@@ -20,11 +20,8 @@ if __name__=="__main__":
 
 	model = Sequential()
 	model.add(Dense(n_hidden1, input_shape=(n_input,),activation='relu'))
-	# model.add(Dropout(0.2))
 	model.add(Dense(n_hidden2, activation='relu'))
 	model.add(Dense(n_output,activation='softmax'))
-	
-
 
 	x_train,y_train=[],[]
 
@@ -53,8 +50,8 @@ if __name__=="__main__":
 	cv_scores=[]
 	for cv in xrange(n_cross_val):
 		print "Cross Validation Iteration:",cv
-		
-		model.compile(loss='categorical_crossentropy',optimizer='adam',metrics=['accuracy'])
+
+		model.compile(loss='categorical_crossentropy',optimizer='adamax',metrics=['accuracy'])
 
 		perm=np.random.permutation(x_train.shape[0])
 		x_train=x_train[perm]
@@ -97,7 +94,7 @@ if __name__=="__main__":
 		cv_scores.append(test_acc)
 		print confusion_matrix
 	
-	#print "Mean=",np.mean(cv_scores),"SD=",np.std(cv_scores)
+	print "Mean=",np.mean(cv_scores),"SD=",np.std(cv_scores)
 
 
 
